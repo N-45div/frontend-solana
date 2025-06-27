@@ -1,53 +1,40 @@
-"use client"
+// frontend/components/connect-wallet-button.tsx
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { useWallet } from "@/hooks/use-wallet"
-import { Wallet, ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react'; // Keep useWallet to check connection status for styling if needed
 
-interface ConnectWalletButtonProps {
-  size?: "default" | "sm" | "lg"
-  className?: string
-}
+export function ConnectWalletButton({ className }: { className?: string }) {
+  const { connected } = useWallet();
 
-export function ConnectWalletButton({ size = "default", className }: ConnectWalletButtonProps) {
-  const { isConnected, address, connect, disconnect } = useWallet()
+  // WalletMultiButton provides its own styling, but we can pass a className to override/extend.
+  // The @solana/wallet-adapter-react-ui/styles.css should be imported in a global layout file (e.g., solana-wallet-provider.tsx or layout.tsx)
+  // which I did in solana-wallet-provider.tsx.
+  // The button will dynamically change its text and behavior based on wallet state.
 
-  if (isConnected && address) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size={size}
-            className={cn("border-teal-500 text-teal-400 hover:bg-teal-500/10", className)}
-          >
-            <Wallet className="mr-2 w-4 h-4" />
-            {`${address.slice(0, 6)}...${address.slice(-4)}`}
-            <ChevronDown className="ml-2 w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-slate-800 border-slate-700">
-          <DropdownMenuItem onClick={disconnect} className="text-white hover:bg-slate-700 cursor-pointer">
-            Disconnect Wallet
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  }
+  // If you need highly custom styling, you might need to fork WalletMultiButton or build your own
+  // using useWallet and useWalletModal hooks. For most cases, WalletMultiButton is sufficient.
 
   return (
-    <Button
-      onClick={connect}
-      size={size}
-      className={cn(
-        "bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold",
-        className,
-      )}
-    >
-      <Wallet className="mr-2 w-4 h-4" />
-      Connect Wallet
-    </Button>
-  )
+    <div className={className}>
+      <WalletMultiButton
+        style={{
+            // Basic styles to somewhat match the theme, can be customized further or via CSS
+            // These are examples and might not perfectly match the original button's gradient/hover effects
+            // For more precise styling, you'd typically use CSS targeting the classes WalletMultiButton applies.
+            backgroundColor: connected ? 'transparent' : '#0d9488', // approx teal-600 for disconnected
+            color: 'white',
+            borderRadius: '0.375rem', // rounded-md
+            paddingLeft: '0.75rem',
+            paddingRight: '0.75rem',
+            paddingTop: '0.5rem',
+            paddingBottom: '0.5rem',
+            fontSize: '0.875rem',
+            lineHeight: '1.25rem',
+            fontWeight: 500,
+            border: connected ? '1px solid #2dd4bf' : 'none', // approx teal-500 border for connected
+        }}
+      />
+    </div>
+  );
 }
