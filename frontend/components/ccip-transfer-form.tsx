@@ -12,7 +12,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 // Updated import path to the new frontend config file
 import { ChainId, CHAIN_SELECTORS, FeeTokenType as ConfigFeeTokenType, getFrontendCCIPSVMConfig, frontendTokens } from "@/lib/ccipConfig";
-import { CCIPRouterClient, TokenAmount } from "@chainlink/solana-sdk";
+import * as ChainlinkSolanaSDK from "@chainlink/solana-sdk";
 import { ethers } from "ethers";
 
 // Use constants from the new config file
@@ -91,7 +91,7 @@ export default function CCIPTransferForm() {
       const tokenDecimals = selectedToken.decimals;
       const rawAmount = ethers.parseUnits(tokenAmount, tokenDecimals).toString();
 
-      const tokenAmounts: TokenAmount[] = [{
+      const tokenAmounts: ChainlinkSolanaSDK.TokenAmount[] = [{ // Adjusted type
         tokenMint: new PublicKey(selectedTokenAddress),
         amount: rawAmount,
       }];
