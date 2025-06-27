@@ -10,11 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
-import { ChainId, CHAIN_SELECTORS, FeeTokenType as ConfigFeeTokenType, getCCIPSVMConfig } from "../../../ccip-scripts/config"; // Adjust path as needed
-import { CCIPRouterClient, EVMRouterClient, TokenAmount } from "@chainlink/solana-sdk"; // Ensure this path is correct or use the EVM SDK if more appropriate for client-side
-import { ethers } from "ethers"; // For EVM address validation and types
+// Updated import path to the new frontend config file
+import { ChainId, CHAIN_SELECTORS, FeeTokenType as ConfigFeeTokenType, getFrontendCCIPSVMConfig, frontendTokens } from "@/lib/ccipConfig";
+import { CCIPRouterClient, TokenAmount } from "@chainlink/solana-sdk";
+import { ethers } from "ethers";
 
-// Placeholder for actual chain and token data - this should ideally come from a config or be more dynamic
+// Use constants from the new config file
 const supportedSourceChains = [
   { id: ChainId.SOLANA_DEVNET, name: "Solana Devnet" },
 ];
@@ -23,16 +24,8 @@ const supportedDestinationChains = [
   { id: ChainId.ETHEREUM_SEPOLIA, name: "Ethereum Sepolia" },
 ];
 
-// Example token - replace with actual token data or fetch dynamically
-const solanaDevnetConfig = getCCIPSVMConfig(ChainId.SOLANA_DEVNET);
-const availableTokens = [
-  {
-    id: "bnm-solana-devnet",
-    name: "BnM Token (Solana Devnet)",
-    address: solanaDevnetConfig.bnmTokenMint, // Use from config
-    decimals: 9 // Assuming 9 decimals for BnM token, adjust if necessary
-  },
-];
+// Use tokens from the new config file
+const availableTokens = frontendTokens.filter(token => token.chainId === ChainId.SOLANA_DEVNET);
 
 export default function CCIPTransferForm() {
   const { connection } = useConnection();
@@ -41,7 +34,8 @@ export default function CCIPTransferForm() {
 
   const [sourceChainId, setSourceChainId] = useState<ChainId>(ChainId.SOLANA_DEVNET);
   const [destinationChainId, setDestinationChainId] = useState<ChainId>(ChainId.ETHEREUM_SEPOLIA);
-  const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>(availableTokens[0]?.address || "");
+  // Ensure availableTokens is not empty before accessing its first element
+  const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>(availableTokens.length > 0 ? availableTokens[0].address : "");
   const [tokenAmount, setTokenAmount] = useState<string>("");
   const [receiverAddress, setReceiverAddress] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -82,7 +76,8 @@ export default function CCIPTransferForm() {
     toast({ title: "Processing Transfer", description: "Please wait..." });
 
     try {
-      const ccipConfig = getCCIPSVMConfig(sourceChainId);
+      // Use the new frontend config getter
+      const ccipConfig = getFrontendCCIPSVMConfig(sourceChainId);
       if (!ccipConfig) {
         throw new Error(`Configuration not found for chain ${sourceChainId}`);
       }
@@ -90,7 +85,7 @@ export default function CCIPTransferForm() {
       const routerClient = new CCIPRouterClient(
         connection,
         publicKey,
-        new PublicKey(ccipConfig.routerAddress)
+        new PublicKey(ccipConfig.routerProgramId) // Use routerProgramId from frontend config
       );
 
       const tokenDecimals = selectedToken.decimals;
